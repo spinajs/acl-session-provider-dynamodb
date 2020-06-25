@@ -1,0 +1,71 @@
+{
+  "name": "@spinajs/acl-session-provider-dynamodb",
+  "version": "1.0.0",
+  "description": "framework acl extension for dynamodb as session provider",
+  "main": "lib/index.js",
+  "private": false,
+  "scripts": {
+    "test": "ts-mocha -p tsconfig.json test/**/*.test.ts",
+    "coverage": "nyc npm run test",
+    "build-docs": "rimraf docs && typedoc --options typedoc.json src/",
+    "build": "tsc",
+    "prepare": "npm run build",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spinajs/acl-http.git"
+  },
+  "keywords": [
+    "di",
+    "container",
+    "spinajs",
+    "di"
+  ],
+  "author": "SpinaJS <spinajs@coderush.pl> (https://github.com/spinajs/core)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/spinajs/acl-session-provider-dynamodb/issues"
+  },
+  "homepage": "https://github.com/spinajs/acl-session-provider-dynamodb#readme",
+  "dependencies": {
+    "@spinajs/acl": "^1.0.1",
+    "@spinajs/di": "^1.0.18",
+    "@spinajs/exceptions": "^1.0.3",
+    "@spinajs/log": "^1.0.7",
+    "aws-sdk": "^2.704.0"
+  },
+  "devDependencies": {
+    "@types/bunyan": "^1.8.6",
+    "@types/chai": "^4.1.7",
+    "@types/chai-as-promised": "^7.1.0",
+    "@types/express": "^4.17.6",
+    "@types/lodash": "^4.14.136",
+    "@types/mocha": "^5.2.7",
+    "@types/reflect-metadata": "^0.1.0",
+    "@types/sinon": "^7.0.13",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^6.1.4",
+    "nyc": "^14.1.1",
+    "prettier": "^1.18.2",
+    "sinon": "^7.3.2",
+    "ts-mocha": "^6.0.0",
+    "ts-node": "^8.3.0",
+    "tslint": "^5.20.1",
+    "tslint-circular-dependencies": "^0.1.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-config-standard": "^8.0.1",
+    "tslint-no-unused-expression-chai": "^0.1.4",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.7.3"
+  }
+}
