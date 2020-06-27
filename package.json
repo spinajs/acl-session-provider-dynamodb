@@ -1,6 +1,6 @@
 {
   "name": "@spinajs/acl-session-provider-dynamodb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "framework acl extension for dynamodb as session provider",
   "main": "lib/index.js",
   "private": false,
