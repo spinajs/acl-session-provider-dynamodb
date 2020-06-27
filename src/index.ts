@@ -1,7 +1,7 @@
 import { SessionProvider, ISession, Session } from "@spinajs/acl";
 import { IContainer, Autoinject } from "@spinajs/di";
 import { Configuration } from "@spinajs/configuration";
-import AWS from 'aws-sdk';
+import * as AWS from 'aws-sdk';
 import { Logger } from "@spinajs/log";
 import { Log } from "@spinajs/log";
 import { InvalidOperation } from "@spinajs/exceptions";
@@ -30,6 +30,7 @@ export class DynamoDBSessionStore extends SessionProvider {
             throw new InvalidOperation("no aws config file");
         }
 
+        AWS.config.loadFromPath(credentials);
         AWS.config.update({ region });
 
         this.DynamoDb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
@@ -42,19 +43,28 @@ export class DynamoDBSessionStore extends SessionProvider {
             TableName: this.TableName,
             Key: {
                 'session_id': { S: sessionId }
-            },
-            ProjectionExpression: 'value'
+            }
         };
 
-        const result = await new Promise((res, rej) => {
+        const result: any = await new Promise((res, rej) => {
 
-            this.DynamoDb.getItem(params, (err, data)=>{
+            this.DynamoDb.getItem(params, (err, data) => {
                 if (err) {
                     rej(err);
                     return;
                 }
 
-                res(data.Item);
+                if(!data.Item)
+                {
+                    res(null);
+                }
+
+                res({
+                    creation: data.Item.creation.S,
+                    expiration: data.Item.expiration.N,
+                    session_id: data.Item.session_id.S,
+                    value: JSON.parse(data.Item.value.S),
+                })
             });
         });
 
@@ -63,12 +73,18 @@ export class DynamoDBSessionStore extends SessionProvider {
         }
 
         const session = new Session({
-            SessionId: sessionId
+            SessionId: sessionId,
+            Data: result.value.Data,
+            Expiration: new Date(result.expiration * 1000),
+            Creation: new Date(result.creation)
         });
+
+        if (session.Expiration < new Date()) {
+            return null;
+        }
 
 
         return session;
-
     }
 
     public async deleteSession(sessionId: string): Promise<void> {
@@ -98,7 +114,11 @@ export class DynamoDBSessionStore extends SessionProvider {
             TableName: this.TableName,
             Item: {
                 'session_id': { S: session.SessionId },
-                'value': { S: JSON.stringify({ Data: session.Data, Expiration: session.Expiration }) }
+                'value': {
+                    S: JSON.stringify({ Data: session.Data }),
+                },
+                'creation': { S: session.Creation.toISOString() },
+                'expiration': { N: `${this._toUnix(session.Expiration)}` }
             },
         };
 
@@ -115,19 +135,23 @@ export class DynamoDBSessionStore extends SessionProvider {
 
     }
 
-    public async refreshSession(sessionId: string): Promise<void> {
+    public async refreshSession(session: string | ISession): Promise<void> {
 
-        const session = await this.restoreSession(sessionId);
+        let sInstance: ISession = null;
+
+        if (typeof session === "string") {
+            sInstance = await this.restoreSession(session);
+        } else {
+            sInstance = session;
+        }
+
         if (session) {
-            session.Expiration = this._getExpirationTime();
-            await this.updateSession(session);
+            sInstance.extend(this.Configuration.get<number>("acl.session.expiration", 10));
+            await this.updateSession(sInstance);
         }
     }
 
-    protected _getExpirationTime() {
-        const expirationDate = new Date();
-        expirationDate.setSeconds(expirationDate.getSeconds() + this.Configuration.get(["acl", "session", "expiration"], 10 * 60));
-        return expirationDate;
+    private _toUnix(date: Date): number {
+        return Math.round(date.getTime() / 1000);
     }
-
 }
