@@ -2,8 +2,7 @@ import { SessionProvider, ISession, Session } from '@spinajs/acl';
 import { IContainer, Autoinject } from '@spinajs/di';
 import { Configuration } from '@spinajs/configuration';
 import * as AWS from 'aws-sdk';
-import { Logger } from '@spinajs/log';
-import { Log } from '@spinajs/log';
+import { Logger, Log} from '@spinajs/log';
 import { InvalidOperation } from '@spinajs/exceptions';
 import * as fs from 'fs';
 
